@@ -8,8 +8,10 @@ import android.view.View
 import kotlinx.android.synthetic.main.activity_main.imageView
 import kotlinx.android.synthetic.main.activity_main.progressBar
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URL
 
@@ -27,8 +29,14 @@ class MainActivity : AppCompatActivity() {
                 getOriginalBitmap()
             }
             val originalBitmap = originalDeferred.await()
-
             loadImage(originalBitmap)
+
+            val filteredDeferred = coroutineScope.async(Dispatchers.Default) {
+                delay(1000)
+                applyFilter(originalBitmap)
+            }
+            val filteredBitmap = filteredDeferred.await()
+            loadImage(filteredBitmap)
         }
     }
 
@@ -36,6 +44,10 @@ class MainActivity : AppCompatActivity() {
         URL(IMAGE_URL).openStream().use {
             BitmapFactory.decodeStream(it)
         }
+
+    private fun applyFilter(originalBitmap: Bitmap): Bitmap {
+        return Filter.apply(originalBitmap)
+    }
 
     private fun loadImage(bmp: Bitmap) {
         progressBar.visibility = View.GONE
